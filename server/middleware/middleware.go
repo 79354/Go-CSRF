@@ -31,7 +31,7 @@ func recoverHandler(next http.Handler) http.Handler{
 func authHandler(next http.Handler) http.Handler{
 	fn := func(w http.ResponseWriter, r *http.Request){
 		switch r.URL.Path{
-		case "/restricted", "/logout", "/deleteUser":
+		case "/restricted", "/logout", "/deleteUser":	// check for jwt
 		default: 
 		}
 	}
@@ -49,9 +49,9 @@ func logicHandler(w http.ResponseWriter, r *http.Request){
 
 	case "/register":
 		switch r.Method{
-		case "GET":	
-		case "POST":
-		default:
+			case "GET":	
+			case "POST":
+			default:
 		}
 	case "/logout":
 	case "/deleteUser": 
@@ -59,7 +59,7 @@ func logicHandler(w http.ResponseWriter, r *http.Request){
 
 	}
 }
-
+// revokes cookie
 func nullifyTokenCookies(w *http.ResponseWriter, r *http.Request){
 	authCookie = http.Cookie{
 		Name:"AuthToken",
@@ -98,5 +98,5 @@ func setAuthAndRefreshCookies(w *http.ResponseWriter, authTokenString string, re
 }
 
 func grabCsrfFromReq(r *http.Request) string{
-
+	
 }
