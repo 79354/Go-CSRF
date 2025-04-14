@@ -3,7 +3,7 @@ package models
 import(
 	"time"
 	"csrf/randomstrings"
-	jwt "github.com/golang-jwt/jwt"
+	jwt "github.com/golang-jwt/jwt/v5"
 )
 
 type User struct{
@@ -11,7 +11,7 @@ type User struct{
 }
 
 type TokenClaims struct{
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 	Role string `json:"role"`
 	Csrf string `json:"csrf"`
 }
