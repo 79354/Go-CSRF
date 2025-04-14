@@ -11,7 +11,7 @@ type User struct{
 }
 
 type TokenClaims struct{
-	jwt.RegisteredClaims
+	StandardClaims jwt.RegisteredClaims
 	Role string `json:"role"`
 	Csrf string `json:"csrf"`
 }

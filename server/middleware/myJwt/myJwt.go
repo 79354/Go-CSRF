@@ -2,13 +2,13 @@ package myJwt
 
 import (
 	"crypto/rsa"
+	"csrf/db"
 	"csrf/db/models"
 	"errors"
 	"log"
 	"os"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/golang-jwt/jwt"
 )
 
@@ -125,22 +125,58 @@ func createAuthTokenString(uuid, role, csrfSecret string)(authTokenString string
 	// Create Claims for auth Token
 	authClaims := models.TokenClaims{
 		StandardClaims: jwt.RegisteredClaims{
-			Subject: uuid,
+			Subject:   uuid,
 			ExpiresAt: jwt.NewNumericDate(time.Unix(authTokenExp, 0)),
 		},
+		Role: role,
+		Csrf: csrfSecret,
 	}
 
-	authJWT := jwt.NewWithClaims()
+	// create new jwt with claims
+	authJWT := jwt.NewWithClaims(jwt.SigningMethodRS256 ,authClaims)
+
+	// sign the token with private key
+	authTokenString, err = authJWT.SignedString(signKey)
+	
+	return
 }
 
 func createRefreshTokenString(uuid, role, csrfSecret string)(refreshTokenString string, err error){
+	refreshTokenExp := time.Now().Add(models.RefreshTokenValidTime).Unix()
 
+	// creates and puts the JTI in database
+	refreshJTI, err := db.StoreRefreshToken()
+
+	refreshTokenClaims := models.TokenClaims{
+		StandardClaims: jwt.RegisteredClaims{
+			ID: refreshJTI,
+			Subject: uuid,
+			ExpiresAt: refreshTokenExp,
+		},
+		Role: role,
+		Csrf: csrfSecret,
+	}
+
+	refreshJWT := jwt.NewWithClaims(jwt.SigningMethodRS256, refreshTokenClaims)
+
+	refreshTokenString, err = refreshJWT.SignedString(signKey)
+	return
 }
 
 // if the Auth token is still valid, extends the refresh token expiry.
 //  so if the user is idle they won't be logged out
-func updateRefreshTokenExp(refreshTokenString)(string, error){
+func updateRefreshTokenExp(oldRefreshTokenString string)(refreshTokenString string, err error){
+	refreshToken, err := jwt.ParseWithClaims(oldRefreshTokenString, &models.TokenClaims{}, func(token *jwt.Token)(interface{}, error){
+		return verifyKey, nil
+	})
 
+	if err != nil{
+		return	"", err
+	}
+
+	// extract claims from refresh token
+	oldRefreshTokenClaims, ok := refreshToken.Claims.(*models.TokenClaims)
+	
 }
 
 func updateAuthTokenString(){
