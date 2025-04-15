@@ -3,7 +3,7 @@ package server
 import(
 	"log"
 	"net/http"
-	"csrf/middleware"
+	"csrf/server/middleware"
 )
 
 func StartServer(hostname string, port string) error{
@@ -13,6 +13,6 @@ func StartServer(hostname string, port string) error{
 
 	handler := middleware.NewHandler()
 
-	http.Handler("/", handler)
+	http.Handle("/", handler)
 	return http.ListenAndServe(host, nil)
 }
